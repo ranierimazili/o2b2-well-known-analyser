@@ -1,5 +1,5 @@
 # The open Open Banking Brasil project - well-known analyser
-Analisador de well-known endpoints do Open Finance Brasil
+Analisador de well-known dos endpoints do Open Finance Brasil
 
 Este projeto consulta todos os authorization servers anunciados no diretório de participantes do Open Finance Brasil e mostra a disponibilidade das tecnologias utilizadas pelos authorization servers dos participantes.
 
