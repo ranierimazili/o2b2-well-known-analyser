@@ -16,11 +16,17 @@ const results = {
         "form_post": 0,
         "notInformed": 0
     },
+    "response_types" : {
+        "code_id_token": 0,
+        "code": 0,
+        "notInformed": 0
+    },
     "auth_method": {
         "mtls": 0,
         "private_key": 0,
         "notInformed": 0
     },
+
     "offline_as": {
         "qty": 0,
         "url": []
@@ -33,7 +39,7 @@ const getDirectoryData = async function() {
     return json;
 }
 
-const getUniqAuthorisationServerUrls = function(directoryData) {
+const getUniqueAuthorisationServerUrls = function(directoryData) {
     let authorisationServerUrls = directoryData.map(organisation => (
         organisation.AuthorisationServers.map(authorisationServer => authorisationServer.OpenIDDiscoveryDocument)
     ))
@@ -64,7 +70,18 @@ const checkSubjectTypes = function(wellknown) {
     if (!wellknown?.subject_types_supported) {
         results.subject_type.notInformed++;
     }
+}
 
+const checkResponseTypes = function(wellknown) {
+    if (wellknown?.response_types_supported?.includes("code id_token") || wellknown?.response_types_supported?.includes("id_token code")) {
+        results.response_types.code_id_token++;
+    }
+    if (wellknown?.response_types_supported?.includes("code")) {
+        results.response_types.code++;
+    }
+    if (!wellknown?.response_types_supported) {
+        results.response_types.notInformed++;
+    }
 }
 
 const checkResponseModes = function(wellknown) {
@@ -105,6 +122,7 @@ const analyseAuthorisationServerUrls = async function(authorisationServerUrls) {
             checkSubjectTypes(wellknown);
             checkResponseModes(wellknown);
             checkAuthMethods(wellknown);
+            checkResponseTypes(wellknown);
 
         } catch (e) {
             results.offline_as.qty++;
@@ -116,6 +134,6 @@ const analyseAuthorisationServerUrls = async function(authorisationServerUrls) {
 }
 
 const directoryData = await getDirectoryData();
-const authorisationServerUrls = getUniqAuthorisationServerUrls(directoryData);
+const authorisationServerUrls = getUniqueAuthorisationServerUrls(directoryData);
 await analyseAuthorisationServerUrls(authorisationServerUrls);
 console.log(results);
