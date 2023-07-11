@@ -26,11 +26,11 @@ const results = {
         "private_key": 0,
         "notInformed": 0
     },
-
     "offline_as": {
         "qty": 0,
         "url": []
-    }
+    },
+    "certifications" : {}
 }
 
 const getDirectoryData = async function() {
@@ -133,7 +133,47 @@ const analyseAuthorisationServerUrls = async function(authorisationServerUrls) {
     }
 }
 
+const analyseAuthorisationServerCertifications = function(directoryData) {
+    for (var i=0;i<directoryData.length;i++) {
+        for (var j=0;j<directoryData[i].AuthorisationServers.length;j++) {
+            if (directoryData[i].AuthorisationServers[j].AuthorisationServerCertifications.length != 0) {
+                const certification = getCurrentAuthorisationServerCertification(directoryData[i].AuthorisationServers[j].AuthorisationServerCertifications);
+                const attrName = convertToyyyyMMdd(certification.CertificationExpirationDate).substr(0,4) + "_" + convertToyyyyMMdd(certification.CertificationExpirationDate).substr(4,2);
+                if (!results.certifications.hasOwnProperty(attrName)) {
+                    results.certifications[attrName] = 1;
+                } else {
+                    results.certifications[attrName]++;
+                }
+            }
+        }
+    }
+}
+
+const getCurrentAuthorisationServerCertification = function(certifications) {
+    if (certifications.length == 1) {
+        return certifications[0];
+    } else {
+        let pos = 0;
+        for (var i=1;i<certifications.length;i++) {
+            if (convertToyyyyMMdd(certifications[i].CertificationExpirationDate) > convertToyyyyMMdd(certifications[pos].CertificationExpirationDate)) {
+                pos = i;
+            }
+        }
+        return certifications[pos];
+    }
+}
+
+const convertToyyyyMMdd = function(dateString) {
+    var parts = dateString.split('/');
+    var day = parts[0];
+    var month = parts[1];
+    var year = parts[2];
+    var formattedDate = year + month + day;
+    return formattedDate;
+}
+
 const directoryData = await getDirectoryData();
 const authorisationServerUrls = getUniqueAuthorisationServerUrls(directoryData);
+analyseAuthorisationServerCertifications(directoryData);
 await analyseAuthorisationServerUrls(authorisationServerUrls);
 console.log(results);
